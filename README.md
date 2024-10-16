@@ -39,7 +39,7 @@ and store it
 
 
 copy the script 
-```bashportcheck_and_autostart.sh in your minecraft_server folder, make it executable and change the config part 
+portcheck_and_autostart.sh in your minecraft_server folder, make it executable and change the config part 
 ```bash
 cp ./portcheck_and_autostart.sh /"path_to_server"/portcheck_and_autostart.sh 
 chmod 500 /"path_to_server"/portcheck_and_autostart.sh 
