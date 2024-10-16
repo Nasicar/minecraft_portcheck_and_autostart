@@ -46,4 +46,6 @@ Test with log in with minecraft, if the server starts
 WARNING: NOT STOP the script with order, if the server is online! if you want to stop the script, stop the server manualy 
 screen -S $server_name -X stuff 'stop\n'    #$server_name is the name of the configured screen name in the script portcheck_and_autostart.sh
 or log into your server and stop it with /stop in the text field, if you are allowed to do this
+
+IF you ignore this, it can be destroy the map!
 systemctl stop portcheck_minecraft.service
