@@ -1,0 +1,15 @@
+[Unit]
+Description= Minecraft portcheck und Autostart
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=~/minecraft_server
+User=ncadmin
+ExecStart=~/minecraft_server/portcheck_und_autostart.sh
+
+TimeoutStartSec=90
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
