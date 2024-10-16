@@ -1,0 +1,62 @@
+#!/bin/bash
+#1. script erstellen und ausführbar machen
+#touch ./portcheck_und_autostart.sh  erstellen vom skript
+#chmod 500 ./portcheck_und_autostart.sh    ausführbar machen
+
+#######Config Part#####
+tmp_file=./test.out                                     #temp file, um verbindungsversuche zu erkennen
+server_start_datei=./minecraft_start.sh                 #skript zum ausführen des servers mit eigenen parametern
+server_logdatei=./logs/latest.log                       #pfad zur serverlog datei
+wartezeit_vor_spielercheck=600                          #Wartezeit, bis zum erneuten checken, ob spieler aufm server sind
+eigene_ip=192.168.0.2                                   #Eigene IP vom server, um Portstatus abzufragen
+path_to_server_properties=./server.properties           #Pfad zur cofig Datei
+server_name="minecraft_server"                          #screen name, um server zu verwalten. Bei mehreren Servern verschiedene nutzen!
+
+
+##Global Var
+port_frei=true
+serverport=$(grep "server-port" ./server.properties)    #Portlinie aus config rausfiltern
+serverport=${serverport#"server-port="}                 #Port aus line rausfiltern
+
+
+while $port_frei ;
+do
+if nc -w 1 -v $eigene_ip $serverport </dev/null; then
+   port_frei=false
+   echo "Port belegt, ggf server schon aktiv?"
+else
+   $(nc -l -p "$serverport" > $tmp_file);
+
+   if [ -s $tmp_file ]; then
+      echo "Verbindungsversuch erkannt, server gestartet"
+      screen -mdS $server_name $server_start_datei
+      sleep 60     #Wartezeit, damit sich leute einloggen können
+      aktive_spieler="1"
+      while [[ "$aktive_spieler" = "1" ]]
+      do
+        sleep $wartezeit_vor_spielercheck
+        screen -S $server_name -X stuff 'list\n'
+        zwischenspeicher=$(grep -c "There are 0 of a max of 20 players online:" $server_logdatei)
+        #echo $zwischenspeicher
+
+        if [[ "0" < "$zwischenspeicher" ]]; then
+            echo "kein spieler mehr online, server wird heruntergefahren"
+            aktive_spieler="0"
+            screen -S $server_name -X stuff 'stop\n'
+            sleep $zwischenspeicher
+        #else
+            #echo "Spieler noch online, server bleibt aktiv ausschalten"
+        fi
+      done
+      zwischenspeicher=$(grep -c "There are 0 of a max of 20 players online:" $server_logdatei)
+     while [[ "0" = "$zwischenspeicher" ]]
+      do
+         sleep 2
+         zwischenspeicher=$(grep -c "ThreadedAnvilChunkStorage: All dimensions are saved" $server_logdatei)
+         #echo $zwischenspeicher
+      done
+      echo "Server Beendet, horche wieder auf Port"
+   fi
+   sleep 1
+fi
+done
