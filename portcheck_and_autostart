@@ -26,8 +26,11 @@ if nc -w 1 -v $eigene_ip $serverport </dev/null; then
    echo "Port belegt, ggf server schon aktiv?"
 else
    $(nc -l -p "$serverport" > $tmp_file);
-
    if [ -s $tmp_file ]; then
+   IFS= read -r zeile < "$tmp_file"
+     if [[ "${zeile:0:2}" =~ ^$'\x1A'$'\x00' ]]; then
+       echo "nur Ping erkannt"
+     else
       echo "Verbindungsversuch erkannt, server gestartet"
       screen -mdS $server_name $server_start_datei
       sleep 60     #Wartezeit, damit sich leute einloggen können
@@ -56,6 +59,7 @@ else
          #echo $zwischenspeicher
       done
       echo "Server Beendet, horche wieder auf Port"
+     fi
    fi
    sleep 1
 fi
